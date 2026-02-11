@@ -3,7 +3,6 @@ FROM runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y curl wget git zstd && rm -rf /var/lib/apt/lists/*
-
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
 RUN pip install --no-cache-dir \
@@ -13,9 +12,10 @@ RUN pip install --no-cache-dir \
 
 COPY handler.py /app/handler.py
 
-ENV OLLAMA_HOST=0.0.0.0
+ENV OLLAMA_HOST=0.0.0.0:11434
 ENV OLLAMA_MODELS=/runpod-volume/models
 
-EXPOSE 11434
+EXPOSE 11434 8000
 
-CMD ["python", "-u", "/app/handler.py"]
+# Start Ollama in background, then start handler
+CMD sh -c "ollama serve &" && sleep 5 && python -u /app/handler.py
